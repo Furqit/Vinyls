@@ -1,9 +1,17 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.*
 
 plugins {
-    `maven-publish`
-    id("fabric-loom")
-    kotlin("jvm") version "2.0.20"
+    kotlin("jvm") version "2.2.+"
+    kotlin("plugin.serialization") version "2.2.+"
+    id("fabric-loom") version "1.14.+"
+    id("me.modmuss50.mod-publish-plugin") version "0.8.+"
+}
+
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.let {
+        load(it.inputStream())
+    }
 }
 
 class ModData {
@@ -22,33 +30,28 @@ val deps = ModDependencies()
 val mcVersion = stonecutter.current.version
 val mcDep = property("mod.mc_dep").toString()
 
-version = "fabric-${mod.version}+$mcVersion"
+version = "${mod.version}+$mcVersion"
 group = mod.group
 base { archivesName.set(mod.id) }
 
 repositories {
     mavenCentral()
+    maven("https://maven.tomalbrc.de/")
+    maven("https://maven.nucleoid.xyz")
+    maven("https://maven.blamejared.com/")
 }
 
 dependencies {
-    fun fapi(vararg modules: String) {
-        modules.forEach { fabricApi.module(it, deps["fapi"]) }
-    }
-
     minecraft("com.mojang:minecraft:${mcVersion}")
     mappings("net.fabricmc:yarn:${mcVersion}+build.${deps["yarn_build"]}:v2")
     modImplementation("net.fabricmc:fabric-loader:${deps["fabric_loader"]}")
-    modImplementation("net.fabricmc:fabric-language-kotlin:1.12.1+kotlin.2.0.20")
-
     modImplementation("net.fabricmc.fabric-api:fabric-api:${deps["fabric_api"]}")
+    modImplementation("net.fabricmc:fabric-language-kotlin:${deps["kotlin_version"]}")
+    modImplementation("de.tomalbrc:filament:1.3.17-patch3+1.21.1")
+    modImplementation("eu.pb4:polymer-core:0.9.18+1.21.1")
+    modImplementation("eu.pb4:polymer-resource-pack:0.9.18+1.21.1")
+
     vineflowerDecompilerClasspath("org.vineflower:vineflower:1.10.1")
-    modImplementation(include("org.yaml", "snakeyaml", "2.2"))
-    modImplementation(include("dev.furq", "spindle", "1.0.0"))
-    modImplementation(include("net.kyori", "adventure-text-serializer-legacy", "4.17.0"))
-    modImplementation(include("net.kyori", "adventure-api", "4.17.0"))
-    modImplementation(include("net.kyori", "adventure-key", "4.17.0"))
-    modImplementation(include("net.kyori", "adventure-text-minimessage", "4.17.0"))
-    modImplementation(include("net.kyori", "examination-api", "1.3.0"))
 }
 
 loom {
@@ -60,29 +63,23 @@ loom {
 
     runConfigs.all {
         ideConfigGenerated(stonecutter.current.isActive)
-        vmArgs("-Dmixin.debug.export=true")
         runDir = "../../run"
     }
 }
 
 tasks.withType<KotlinCompile> {
     compilerOptions {
-        jvmTarget.set(
-            if (stonecutter.compare(mcVersion, "1.20.6") >= 0)
-                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
-            else
-                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
-        )
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
     }
 }
 
 java {
-    withSourcesJar()
-    val javaVersion =
-        if (stonecutter.compare(mcVersion, "1.20.6") >= 0) JavaVersion.VERSION_21 else JavaVersion.VERSION_17
+    val javaVersion = JavaVersion.VERSION_21
     targetCompatibility = javaVersion
     sourceCompatibility = javaVersion
+    withSourcesJar()
 }
+
 tasks.processResources {
     inputs.property("id", mod.id)
     inputs.property("name", mod.name)
@@ -104,4 +101,36 @@ tasks.register<Copy>("buildAndCollect") {
     from(tasks.remapJar.get().archiveFile)
     into(rootProject.layout.buildDirectory.file("libs/${mod.version}"))
     dependsOn("build")
+}
+
+publishMods {
+    file = tasks.remapJar.get().archiveFile
+    additionalFiles.from(tasks.named("sourcesJar").get().outputs.files)
+    displayName = "${mod.name} ${mod.version}"
+    version = mod.version
+    changelog = rootProject.file("CHANGELOG.md").readText()
+    type = STABLE
+    modLoaders.add("fabric")
+    val lower = """>=\s*([0-9.]+)""".toRegex().find(mcDep)?.groupValues?.get(1)
+    val upper = """<=\s*([0-9.]+)""".toRegex().find(mcDep)?.groupValues?.get(1)
+
+    modrinth {
+        projectId = "WdbPWi13"
+        accessToken = localProperties.getProperty("MODRINTH_TOKEN")
+        minecraftVersionRange {
+            start = lower ?: "latest"
+            end = upper ?: "latest"
+        }
+    }
+
+    curseforge {
+        projectId = "1150354"
+        projectSlug = "vinyls"
+        accessToken = localProperties.getProperty("CURSEFORGE_TOKEN")
+        serverRequired = true
+        minecraftVersionRange {
+            start = lower ?: "latest"
+            end = upper ?: "latest"
+        }
+    }
 }

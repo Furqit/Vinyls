@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "server-side custom music disc",
+  "authors": ["Furq"],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/vinyls",
+    "sources": "https://github.com/Furqit/Vinyls"
+  },
+  "license": "GPL-3.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["dev.furq.vinyls.Vinyls"]
+  },
+  "mixins": ["vinyls.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.15",
+    "minecraft": "${mcdep}",
+    "fabric-api": "*",
+    "fabric-language-kotlin": "*"
+  }
+}
