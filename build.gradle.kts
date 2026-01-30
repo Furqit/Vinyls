@@ -47,9 +47,9 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:${deps["fabric_loader"]}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${deps["fabric_api"]}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${deps["kotlin_version"]}")
-    modImplementation("de.tomalbrc:filament:1.3.17-patch3+1.21.1")
-    modImplementation("eu.pb4:polymer-core:0.9.18+1.21.1")
-    modImplementation("eu.pb4:polymer-resource-pack:0.9.18+1.21.1")
+    modImplementation("de.tomalbrc:filament:${deps["filament"]}")
+    modImplementation("eu.pb4:polymer-core:${deps["polymer"]}")
+    modImplementation("eu.pb4:polymer-resource-pack:${deps["polymer"]}")
 
     vineflowerDecompilerClasspath("org.vineflower:vineflower:1.10.1")
 }
@@ -115,16 +115,19 @@ publishMods {
     val upper = """<=\s*([0-9.]+)""".toRegex().find(mcDep)?.groupValues?.get(1)
 
     modrinth {
-        projectId = "WdbPWi13"
+        projectId = "NQW2ibaE"
         accessToken = localProperties.getProperty("MODRINTH_TOKEN")
         minecraftVersionRange {
             start = lower ?: "latest"
             end = upper ?: "latest"
         }
+        requires("fabric-api")
+        requires("filament")
+        requires("fabric-language-kotlin")
     }
 
     curseforge {
-        projectId = "1150354"
+        projectId = "1097085"
         projectSlug = "vinyls"
         accessToken = localProperties.getProperty("CURSEFORGE_TOKEN")
         serverRequired = true
@@ -132,5 +135,8 @@ publishMods {
             start = lower ?: "latest"
             end = upper ?: "latest"
         }
+        requires("fabric-api")
+        requires("filament")
+        requires("fabric-language-kotlin")
     }
 }

@@ -3,7 +3,7 @@
   "id": "${id}",
   "version": "${version}",
   "name": "${name}",
-  "description": "server-side custom music disc",
+  "description": "Allows making server-side custom music discs.",
   "authors": ["Furq"],
   "contact": {
     "homepage": "https://modrinth.com/mod/vinyls",
@@ -19,6 +19,7 @@
     "fabricloader": ">=0.15",
     "minecraft": "${mcdep}",
     "fabric-api": "*",
-    "fabric-language-kotlin": "*"
+    "fabric-language-kotlin": "*",
+    "filament": "*"
   }
 }
