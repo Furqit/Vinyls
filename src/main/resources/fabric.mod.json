@@ -14,7 +14,6 @@
   "entrypoints": {
     "main": ["dev.furq.vinyls.Vinyls"]
   },
-  "mixins": ["vinyls.mixins.json"],
   "depends": {
     "fabricloader": ">=0.15",
     "minecraft": "${mcdep}",
